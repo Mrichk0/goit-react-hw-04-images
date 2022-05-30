@@ -28,8 +28,9 @@ ImageGallery.propTypes = {
     hits: PropTypes.arrayOf(PropTypes.shape({
         webformatURL: PropTypes.string.isRequired,
         id: PropTypes.number.isRequired,
-        largeImageURL: PropTypes.string.isRequired
-    })).isRequired
+        largeImageURL: PropTypes.string.isRequired,
+    })).isRequired,
+    onClick: PropTypes.func.isRequired,
 }
 
 export default ImageGallery;
