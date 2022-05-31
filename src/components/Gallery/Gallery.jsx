@@ -1,4 +1,4 @@
-import { Component } from "react";
+import { useState, useEffect } from "react";
 
 import SearchBar from "components/Gallery/SearchBar";
 import ImageGallery from "./ImageGallery";
@@ -10,93 +10,86 @@ import { searchPhotos, PER_PAGE } from "../../shared/services/photos"
 
 import styles from './gallery.module.css'
 
-class Gallery extends Component {
-
-    state = {
+const Gallery = () => {
+    const [gallery, setGallery] = useState({
         hits: [],
         loading: false,
         error: null,
-        q: "",
-        page: 1,
+    });
+    const [q, setQ] = useState('');
+    const [page, setPage] = useState(1);
+    const [modal, setModal] = useState({
         isModalOpen: false,
         modalBody: {}
-        
-    }
-
-    async componentDidUpdate(prevProps, prevState) {
-        const { q, page } = this.state
-        
-        if(q !== prevState.q || page > prevState.page){
-        this.setState({
-            loading: true, 
-            error: null,
     })
-            try {
-                const { hits, totalHits } = await searchPhotos(q, page);
-                this.setState(prevState => {
-                    return {
+
+    useEffect(() => {
+        const fetchPosts = async  () => {
+            setGallery({
+                hits,
+                loading: q !== '',
+                error: null
+            })
+            
+            if (q !== '') {
+                try {
+                    const { hits, totalHits } = await searchPhotos(q, page); 
+                    setGallery(prevState => ({
+                        ...prevState,
                         hits: [...prevState.hits, ...hits],
-                        totalHits,
                         loading: false,
-                    }
-                } )
-            } catch(error) {
-                this.setState({
-                    loading: false,
-                    error: error.message
-                })
-            }
-        }
+                        totalHits
+                    }))
+                } catch (error) {
+                    setGallery({ 
+                        hits,
+                        loading: false,
+                        error: error.massage,
+                        totalHits: 0 })
+                }                  
+            } 
+        } 
+        fetchPosts()
+    }, [q, page]) 
+
+    const setSearch = ({ q }) => {
+        setQ(q);
+        setPage(1);
+        setGallery({...gallery,  hits: [] })
     }
 
-    setSearch = ({ q }) => {
-        this.setState({
-            q,
-            page: 1 ,
-            hits:[],
+    const showModal = ( modalBody ) => {
+        setModal({
+        isModalOpen: true,
+        modalBody
         })
+}
+
+    const loadMore = () => {
+        setPage( prevPage  => prevPage + 1) 
     } 
 
-    loadMore = () => {
-        this.setState(({ page }) => {
-            return {
-                page: page + 1
-            }
-        })
-    }
-
-    showModal = (modalBody) => {
-        
-        this.setState({ 
-            modalBody,
-            isModalOpen: true
-        })
-    }
-
-    closeModal = () => {
-    this.setState({ 
+    const closeModal = () => {
+        setModal({
             isModalOpen: false
         })
     }
-
-    render() {
-        const { loading, hits, isModalOpen, modalBody } = this.state;
-        const { setSearch, loadMore, showModal, closeModal } = this;
-
-        return (
+     
+    const { hits, loading, totalHits } = gallery;
+    const {isModalOpen, modalBody} = modal   
+            return (
             <div className={styles.App}>
             <header className={styles.Searchbar}>
                 <SearchBar onSubmit={setSearch} />
-              
-                {/* {!loading && Boolean(hits.length) } */}
-                </header>
-                  {loading && <Loader/>}
+            </header>
+                    {loading && <Loader />}
                 {Boolean(hits.length) && (
-                    <ImageGallery onClick={ showModal} hits={this.state.hits} />  
+                    <ImageGallery onClick={ showModal} hits={hits} />  
                 )}
-                {this.state.totalHits > PER_PAGE && <Button onClick={loadMore} text="Load More" />}
+                {totalHits > PER_PAGE && <Button onClick={loadMore} text="Load More" />}
                 {isModalOpen && (<Modal close={closeModal}> <img src={modalBody} alt="big" /> </Modal>)}
                 </div>
-    )}
+    )
 }
+
 export default Gallery;

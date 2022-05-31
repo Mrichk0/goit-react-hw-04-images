@@ -1,8 +1,8 @@
-import { Component } from 'react';
+
 import styles from './loader.module.css'
 
-class Loader extends Component {
-  render() {
+const Loader = () => {
+  
     return (
     <div className={styles.spinnerContainer}>
       <div className={styles.loadingSpinner}>
@@ -10,6 +10,6 @@ class Loader extends Component {
     </div>
     );
   }
-}
+
 
 export default Loader;
